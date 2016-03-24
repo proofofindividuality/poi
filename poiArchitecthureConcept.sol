@@ -25,8 +25,8 @@ contract poi {
         
         depositSize = 10;
         registrationPeriod = roundLength * 29/30; // 29 days
-        hangoutCountdown = registrationPeriod * 23/24 // 23 hours
-	groupSize = 5;
+		hangoutCountdown = registrationPeriod * 23/24; // 23 hours
+		groupSize = 5;
 	
         scheduleRound();
     }
@@ -52,7 +52,7 @@ contract poi {
         // if a new depositSize has been agreed on, the old depositGovernanceContract will automatically
         // invoke the newDepositSize() function (see below) 
         
-        newDepositGovernanceContract()
+        newDepositGovernanceContract();
     }
     
     function newDepositGovernanceContract() internal{
@@ -112,9 +112,7 @@ contract registration {
     /* manage deposits */
     
     uint depositSize;
-    
-    address[] depositRegistry;
-    
+	address depositContract;
 
     function registration(uint depositSize, uint registrationPeriod, uint hangoutCountdown, uint groupSize){
         groupSize = groupSize;
@@ -132,8 +130,7 @@ contract registration {
         if(registered[msg.sender] == true) throw;
         registeredUsers.push(msg.sender);
         registered[msg.sender] = true;
-        
-        depositRegistry.push(msg.sender);
+		depositGovernance(depositContract).registrationDeposit(msg.sender).value(msg.value);
         return true;
     }
 
@@ -143,10 +140,16 @@ contract registration {
     schedulerReward += msg.value;
     }
 
+	function getRandomNumber(uint seed) returns (uint) {
+		return (uint(sha3(block.blockhash(block.number-1), seed))%100);
+	}
+
     function generateGroups() {
         if(block.number < deadLine) throw;
         
         msg.sender.send(schedulerReward); // send reward
+
+
 
 /* ether-poker's algorithm for shuffling a deck of cards is used to shuffle the list of registered users */
 
@@ -169,21 +172,25 @@ contract registration {
 	uint groupCount;
 	uint counter;
 
-	for(uint i = 0; i < randomizedTemplate.length; i++){
+	for(i = 0; i < randomizedTemplate.length; i++){
 		if(counter == groupSize){ groupCount++; counter = 0;}
 		userGroup[registeredUsers[randomizedTemplate[i]]] = groupCount;
+        hangoutGroups[groupCount].push(registeredUsers[randomizedTemplate[i]]);
+
+		
 		counter++;
 	}
+/* hangout addresses are generated and mapped to hangout groups */
 
-
-	bytes32 a = sha3(hangoutAddresses[groupCount])
-            
-            hangoutAddress.push(sha3(hangoutGroups[k]));
-            hangoutAddressRegistry[k] = hangoutAddress[hangoutAddress.length];
-        }
-        generateGroupsFinished = true;    
-        bootUpHangouts();
+	for(i = 0; i < hangoutGroups.length; i++){
+	
+		hangoutAddress.push(sha3(hangoutGroups[hangoutGroups.length]));
+    	hangoutAddressRegistry[hangoutGroups.length]= hangoutAddress[hangoutAddress.length];
+    }
         
+        
+        generateGroupsFinished = true;    
+
     }
 
     function getHangoutAddress() returns(bytes32){
@@ -221,10 +228,6 @@ contract registration {
         if(block.number < passVerifiedUsersDeadLine) throw; // hangouts are still in session
             poi(owner).issuePOIs(verifiedUsers);
             
-            /* return deposits */
-    
-        for (uint i = depositRegistry.length; i < 0 ; i++)
-            depositRegistry[i].send(depositSize * 1 ether);
     }
     
     function endRound(){
@@ -360,18 +363,23 @@ contract generatePOIs {
    
 }
 
+/* manage all deposits in one contract. allow users to vote using the ether from their registration deposit, if they want. 
+   return all deposits after the round has finished. */
+
 contract depositGovernance {
-/* proposals are processed at the end of each round */
-
-/* there's a deposit to create a proposal, equal to the amount being voted on */
-
-/* proposals are voted on with ether deposits */
-/* proposals where negative votes exceeds positive votes are ignored */
-/* the proposal that gathers the most up-votes (in ether) wins */
-
-/* all deposits are returned after the proposals have been processed */
 
 address owner;
+address registrationContract;
+
+/* manage deposits */
+
+mapping (address => uint256) deposits; // deposits that have not been used as votes
+mapping (address => uint256) votes; // deposited ether that has been used to vote
+
+mapping (address => uint256) addressIndex;
+
+address[] depositRegistry;
+
 
 struct proposeNewDeposit {
     uint256 depositSize;
@@ -382,16 +390,21 @@ struct proposeNewDeposit {
 
 proposeNewDeposit[] proposals;
 
-/* manage deposits */
 
-mapping (address => uint256) deposits;
-
-mapping (address => uint256) addressIndex;
-
-address[] depositRegistry;
 
 function depositGovernance(){
     owner = msg.sender;
+}
+
+// contract registration calls registrationDeposit(msg.sender).value(msg.value)
+
+function registrationDeposit(address registrant){
+if(msg.sender != registrationContract) throw;
+deposits[registrant] += msg.value;
+if(addressIndex[registrant] == 0)
+
+depositRegistry.push(registrant);
+
 }
 
 function NewProposal(uint256 depositSize){
@@ -454,5 +467,6 @@ function processProposals() { // invoked at the end of each round
     if(depositRegistry.length == 0)
         suicide(owner);
 }
-    
+
+
 }
