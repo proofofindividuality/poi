@@ -1,4 +1,6 @@
 /* proposal for overall architecture of the POI system */
+/* by Johan, @resilience_me
+
 /* for an image of how the parts of the system fit together, see http://i.imgur.com/umgmBgk.png */
 
 /* this is meant as a early draft of how the full system could work. parts of the draft might be production ready. */
