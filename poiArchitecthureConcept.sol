@@ -127,7 +127,8 @@ contract registration {
     
     uint public genesisBlock;
     uint public deadLine;
-
+    uint hangoutCountdown;
+    
     uint groupSize;
 
     uint256 schedulerReward;
@@ -167,7 +168,7 @@ contract registration {
         if(registered[msg.sender] == true) throw;
         registeredUsers.push(msg.sender);
         registered[msg.sender] = true;
-		depositGovernance(depositContract).registrationDeposit(msg.sender).value(msg.value);
+	depositGovernance(depositContract).registrationDeposit(msg.sender).value(msg.value);
         return true;
     }
 
