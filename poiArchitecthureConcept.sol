@@ -33,8 +33,7 @@
 
 
 // it's probably not optimal to boot up new contracts for everything all the time. 
-// i'm still learning design patters in writing apps etc. I believe in the protocol but am an unexperienced dev.
-// feedback and better solutions very welcome !
+// feedback and better solutions welcome
 
 
 
