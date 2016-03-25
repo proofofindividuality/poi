@@ -1,6 +1,16 @@
 /* proposal for overall architecture of the POI system */
 /* for an image of how the parts of the system fit together, see http://i.imgur.com/umgmBgk.png */
 
+/* 
+   contract depositGovernance: more or less finished
+   generatePOIs: more or less finished
+   hangout: more or less finished 
+   registration: needs to be cleaned up 
+   poi: not finished, needs work, scheduling needs to be streamlined,
+   and the other contracts need to integrate better with the main contract
+*/   
+   
+
 contract poi {
     
     address currentPOItokens;
