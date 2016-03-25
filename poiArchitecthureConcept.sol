@@ -71,10 +71,8 @@ contract poi {
     
     function scheduleRound() {
         if(block.number < nextRound) throw;
-        msg.sender.send(this.balance); // send reward for invoking function
         if(currentRound != 0) registration(currentRound).endRound();
         currentRound = new registration(depositSize, registrationPeriod, hangoutCountdown, groupSize);
-        
         
         nextRound += roundLength;
     }
