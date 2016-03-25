@@ -19,6 +19,7 @@
 // overview of the contracts:
 // depositGovernance: manages the anti-spam deposits, and also includes a system to vote on the size of the anti-spam deposit.
 // 		      a new contract is created each round, and the old one sucidides.
+//
 // generatePOIs: issues undivisible POI tokens to all verified users. a new contract is created after each round, and the old one suicides.
 // 
 // hangout: manages the verification within the hangouts. includes the ASF system that 'gamifies the hangouts' by using a point system
