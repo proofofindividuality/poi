@@ -172,6 +172,7 @@ contract registration {
     }
 
     /* function that is called when someone sends funds to rewarding the scheduler of generateGroups() */
+    /* scheduling of function calls needs to be improved and streamlined, and invoked from main contract */
     function() {
     schedulerReward += msg.value;
     }
@@ -261,9 +262,6 @@ contract registration {
     
     function endRound(){
         if(msg.sender != owner) throw;
-
-        
-        
         suicide(owner);
     }
 }
