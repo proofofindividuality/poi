@@ -259,6 +259,7 @@ and then rewards the other 4 users for their attention. This makes it possible
 for 4 people to put peer-pressure on the 5th if the 5th person isn't focused 
 on the joint attention test. 
 */
+
   address owner;
 
   uint public genesisblock;
@@ -284,7 +285,7 @@ on the joint attention test.
             participants.push(hangoutGroup[i]);
 
             genesisblock = block.number;
-            deadline = genesisblock + 100; // hangouts are 15 minutes long
+            deadline = genesisblock + 60; // hangouts are 15 minutes long
             owner = msg.sender;
 
     }
