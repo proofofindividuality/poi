@@ -17,6 +17,7 @@
  
    
 // overview of the contracts:
+//
 // depositGovernance: manages the anti-spam deposits, and also includes a system to vote on the size of the anti-spam deposit.
 // 		      a new contract is created each round, and the old one sucidides.
 //
