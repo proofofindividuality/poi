@@ -203,8 +203,7 @@ contract registration {
 /* hangout addresses are generated and mapped to hangout groups */
 
 	for(i = 0; i < hangoutGroups.length; i++){
-	    hangoutAddress.push(sha3(hangoutGroups[hangoutGroups.length]));
-    	    hangoutAddressRegistry[hangoutGroups.length]= hangoutAddress[hangoutAddress.length];
+    	    hangoutAddressRegistry[i]= sha3(hangoutGroups[i]);
         }
         
         generateGroupsFinished = true;    
@@ -212,11 +211,10 @@ contract registration {
     }
 
     function getHangoutAddress() returns(bytes32){
-        if(generateGroupsFinished != true) throw;
+        if(hangoutAddressRegistry[userGroup[msg.sender]] == 0) throw;
         // maybe use http://appear.in for first version
-        // hangoutURL = "http://appear.in" + hangoutAddress[groupCount]
-        uint a = userGroup[msg.sender];
-        bytes32 b = hangoutAddressRegistry[a];
+        // hangoutURL = "http://appear.in" + hangoutAddressRegistry[userGroup[msg.sender]]
+        bytes32 b = hangoutAddressRegistry[userGroup[msg.sender]];
         return b;
     }
 
