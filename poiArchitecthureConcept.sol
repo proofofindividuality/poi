@@ -200,6 +200,7 @@ contract registration {
 	}
 	
 /* hangout addresses are generated and mapped to hangout groups */
+/* this could be improved */
 
 	for(i = 0; i < groupCount.length; i++){
     	    hangoutAddressRegistry[i]= sha3(hangoutGroups[i]);
