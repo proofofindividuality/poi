@@ -125,19 +125,16 @@ contract registration {
     
     uint groupSize;
 
-    bool generateGroupsFinished;
-
-    address[][] hangoutGroups;
-    mapping(uint => bytes32) public hangoutAddressRegistry;
-    mapping (address => bool) hangoutInSession;
-
-
     mapping(address => bool) public registered;
     address[] registeredUsers;
     uint256[] randomizedTemplate;
 
     mapping(address => uint) public userGroup;
     uint groupCount;
+
+    address[][] hangoutGroups;
+    mapping(uint => bytes32) public hangoutAddressRegistry;
+    mapping (address => bool) hangoutInSession;
 
     /* when you issue POIs, you pass along a list of verified users */
     address[] verifiedUsers;
@@ -148,6 +145,9 @@ contract registration {
     
     uint depositSize;
     address depositContract;
+
+
+
 
     function registration(uint depositSize, uint registrationPeriod, uint hangoutCountdown, uint groupSize){
         groupSize = groupSize;
