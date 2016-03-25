@@ -1,35 +1,38 @@
-/* proposal for overall architecture of the POI system */
-/* by Johan, @resilience_me
+// proposal for overall architecture of the POI system
+// by Johan, @resilience_me
 
-/* for an image of how the parts of the system fit together, see http://i.imgur.com/umgmBgk.png */
+// for an image of how the parts of the system fit together, see http://i.imgur.com/umgmBgk.png
 
-/* this is meant as a early draft of how the full system could work. parts of the draft might be production ready. */
-/* this draft is meant to help spread the POI system concept, and to expand the number of people who invest attention in development */
+// this is meant as a early draft of how the full system could work. parts of the draft might be production ready.
+// this draft is meant to help spread the POI system concept, and to expand the number of people who invest attention in development
 
-/* 
-   contract depositGovernance: more or less finished
-   generatePOIs: more or less finished
-   hangout: more or less finished 
-   registration: needs to be cleaned up 
-   poi: not finished, needs work, scheduling needs to be streamlined,
-   and the other contracts need to integrate better with the main contract
-*/   
-   
-*/ overview of the contracts:
-   depositGovernance: manages the anti-spam deposits, and also includes a system to vote on the size of the anti-spam deposit.
-   		      a new contract is created each round, and the old one sucidides.
-   generatePOIs: issues undivisible POI tokens to all verified users. a new contract is created after each round, and the old one suicides.
-   
-   hangout: manages the verification within the hangouts. includes the ASF system that 'gamifies the hangouts' by using a point system
-   	    instead of one-vote-per-person, allowing users in a hangout to direct and steer each others attention more. a new contract is created for each hangout.
-   
-   registration: manages the registration of users each month, assing them into groups by random, and boots up hangout contracts. new contract is created each round.
-   
-   poi: main contract. boots up the other contracts, manages scheduling, and integrates some function calls.
-   
-*/
 
-*/ feedback and better solutions welcome. */
+// contract depositGovernance: more or less finished
+// generatePOIs: more or less finished
+// hangout: more or less finished 
+// registration: needs to be cleaned up 
+// poi: not finished, needs work, scheduling needs to be streamlined,
+// and the other contracts need to integrate better with the main contract
+
+ 
+   
+// overview of the contracts:
+// depositGovernance: manages the anti-spam deposits, and also includes a system to vote on the size of the anti-spam deposit.
+// 		      a new contract is created each round, and the old one sucidides.
+// generatePOIs: issues undivisible POI tokens to all verified users. a new contract is created after each round, and the old one suicides.
+// 
+// hangout: manages the verification within the hangouts. includes the ASF system that 'gamifies the hangouts' by using a point system
+// 	    instead of one-vote-per-person, allowing users in a hangout to direct and steer each others attention more. a new contract is created for each hangout.
+// 
+// registration: manages the registration of users each month, assing them into groups by random, and boots up hangout contracts. new contract is created each round.
+// 
+// poi: main contract. boots up the other contracts, manages scheduling, and integrates some function calls.
+
+
+
+// feedback and better solutions welcome.
+
+
 
 contract poi {
     
