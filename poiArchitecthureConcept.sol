@@ -138,8 +138,13 @@ contract registration {
 
     mapping(address => uint) public userGroup;
     uint groupCount;
-    
-    /* manage deposits */
+
+    /* when you issue POIs, you pass along a list of verified users */
+    address[] verifiedUsers;
+    uint passVerifiedUsersDeadLine;
+
+    /* the deposits are managed by the depositGovernance contract, so registration contract only 
+       stores depositSize and the address for the depositContract */
     
     uint depositSize;
     address depositContract;
@@ -221,8 +226,6 @@ contract registration {
             hangoutInSession[b] = true;
     }
     
-    address[] verifiedUsers;
-    uint passVerifiedUsersDeadLine;
 
     function passVerifiedUsers(address[] verified) {
         if(hangoutInSession[msg.sender] != true) throw; // can only be invoked by hangout contract
