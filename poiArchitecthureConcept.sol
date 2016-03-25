@@ -33,6 +33,7 @@
 
 
 // it's probably not optimal to boot up new contracts for everything all the time. 
+// library contracts could probably be useful, inexperienced with those.
 // feedback and better solutions welcome
 
 
