@@ -129,7 +129,6 @@ contract registration {
 
     address[][] hangoutGroups;
     mapping(uint => bytes32) public hangoutAddressRegistry;
-    bytes32[] hangoutAddress;
     mapping (address => bool) hangoutInSession;
 
 
@@ -202,7 +201,7 @@ contract registration {
 	
 /* hangout addresses are generated and mapped to hangout groups */
 
-	for(i = 0; i < hangoutGroups.length; i++){
+	for(i = 0; i < groupCount.length; i++){
     	    hangoutAddressRegistry[i]= sha3(hangoutGroups[i]);
         }
         
