@@ -174,16 +174,13 @@ contract registration {
     schedulerReward += msg.value;
     }
 
-	function getRandomNumber(uint seed) returns (uint) {
-		return (uint(sha3(block.blockhash(block.number-1), seed))%100);
-	}
+    function getRandomNumber(uint seed) returns (uint) {
+    	return (uint(sha3(block.blockhash(block.number-1), seed))%100);
+    }
 
     function generateGroups() {
         if(block.number < deadLine) throw;
-        
         msg.sender.send(schedulerReward); // send reward
-
-
 
 /* ether-poker's algorithm for shuffling a deck of cards is used to shuffle the list of registered users */
 
@@ -207,21 +204,18 @@ contract registration {
 	uint counter;
 
 	for(i = 0; i < randomizedTemplate.length; i++){
-		if(counter == groupSize){ groupCount++; counter = 0;}
-		userGroup[registeredUsers[randomizedTemplate[i]]] = groupCount;
-        hangoutGroups[groupCount].push(registeredUsers[randomizedTemplate[i]]);
-
-		
-		counter++;
+	    if(counter == groupSize){ groupCount++; counter = 0;}
+	    userGroup[registeredUsers[randomizedTemplate[i]]] = groupCount;
+            hangoutGroups[groupCount].push(registeredUsers[randomizedTemplate[i]]);
+	    counter++;
 	}
+	
 /* hangout addresses are generated and mapped to hangout groups */
 
 	for(i = 0; i < hangoutGroups.length; i++){
-	
-		hangoutAddress.push(sha3(hangoutGroups[hangoutGroups.length]));
-    	hangoutAddressRegistry[hangoutGroups.length]= hangoutAddress[hangoutAddress.length];
-    }
-        
+	    hangoutAddress.push(sha3(hangoutGroups[hangoutGroups.length]));
+    	    hangoutAddressRegistry[hangoutGroups.length]= hangoutAddress[hangoutAddress.length];
+        }
         
         generateGroupsFinished = true;    
 
@@ -230,7 +224,7 @@ contract registration {
     function getHangoutAddress() returns(bytes32){
         if(generateGroupsFinished != true) throw;
         // maybe use http://appear.in for first version
-        // hangoutURL = "http://appear.in" + hangoutAddresses[groupCount]
+        // hangoutURL = "http://appear.in" + hangoutAddress[groupCount]
         uint a = userGroup[msg.sender];
         bytes32 b = hangoutAddressRegistry[a];
         return b;
