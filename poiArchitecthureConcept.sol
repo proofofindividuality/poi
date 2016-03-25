@@ -2,7 +2,7 @@
 // by Johan, @resilience_me
 
 // for an image of how the parts of the system fit together, see http://i.imgur.com/umgmBgk.png
-e
+
 // this is meant as a early draft of how the full system could work. parts of the draft might be production ready.
 // this draft is meant to help spread the POI system concept, and to expand the number of people who invest attention in development
 
