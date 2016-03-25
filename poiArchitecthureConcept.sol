@@ -150,7 +150,7 @@ contract registration {
     /* manage deposits */
     
     uint depositSize;
-	address depositContract;
+    address depositContract;
 
     function registration(uint depositSize, uint registrationPeriod, uint hangoutCountdown, uint groupSize){
         groupSize = groupSize;
