@@ -11,7 +11,7 @@ e
 // generatePOIs: more or less finished
 // hangout: more or less finished 
 // registration: needs to be cleaned up 
-// poi: not finished, needs work, scheduling needs to be streamlined,
+// poi: not finished, needs work, scheduling needs to be streamlined and integrated with ethereum-alarm-service,
 // and the other contracts need to integrate better with the main contract
 
  
