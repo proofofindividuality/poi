@@ -48,11 +48,11 @@ contract poi {
     
     uint genesisblock;
     uint roundLength;
+    uint registrationPeriod;
+    uint hangoutCountdown;
     uint nextRound;
     
     uint depositSize;
-    uint registrationPeriod;
-    uint hangoutCountdown;
     uint groupSize;
     
     function poi (){
