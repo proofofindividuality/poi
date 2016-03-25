@@ -117,10 +117,6 @@ contract poi {
 
 contract registration {
 
-/* the function generateGroups() needs to be called by a scheduler service. since this dApp will have a large userbase,
-   it could perhaps schedule its own calls and reward schedulers. enough funds need to be send to this contract to 
-   incentivize someone to invoke the generateGroups() function. could also use ethereum-alarm-clock.org */
-    
     address owner;
     
     uint public genesisBlock;
