@@ -29,6 +29,8 @@
    
 */
 
+*/ feedback and better solutions welcome. */
+
 contract poi {
     
     address currentPOItokens;
