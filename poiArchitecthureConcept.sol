@@ -131,8 +131,6 @@ contract registration {
     
     uint groupSize;
 
-    uint256 schedulerReward;
-    
     bool generateGroupsFinished;
 
     address[][] hangoutGroups;
@@ -172,11 +170,6 @@ contract registration {
         return true;
     }
 
-    /* function that is called when someone sends funds to rewarding the scheduler of generateGroups() */
-    /* scheduling of function calls needs to be improved and streamlined, and invoked from main contract */
-    function() {
-    schedulerReward += msg.value;
-    }
 
     function getRandomNumber(uint seed) returns (uint) {
     	return (uint(sha3(block.blockhash(block.number-1), seed))%100);
@@ -184,7 +177,6 @@ contract registration {
 
     function generateGroups() {
         if(block.number < deadLine) throw;
-        msg.sender.send(schedulerReward); // send reward
 
 /* ether-poker's algorithm for shuffling a deck of cards is used to shuffle the list of registered users */
 
