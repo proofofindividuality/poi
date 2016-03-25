@@ -32,10 +32,9 @@
 
 
 
-// i'm a relatively inexperienced developer.
 // it's perhaps not optimal to boot up new contracts for everything all the time. 
 // library contracts could perhaps be useful. inexperienced with those.
-// feedback and better solutions from better developers are welcome, and will be added to what I do on my end
+// feedback and better solutions are welcome, and will be added to what I do on my end.
 
 
 
