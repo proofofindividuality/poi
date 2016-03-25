@@ -211,8 +211,7 @@ contract registration {
         if(hangoutAddressRegistry[userGroup[msg.sender]] == 0) throw;
         // maybe use http://appear.in for first version
         // hangoutURL = "http://appear.in" + hangoutAddressRegistry[userGroup[msg.sender]]
-        bytes32 b = hangoutAddressRegistry[userGroup[msg.sender]];
-        return b;
+        return hangoutAddressRegistry[userGroup[msg.sender]];
     }
 
 
