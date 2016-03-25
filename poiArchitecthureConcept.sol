@@ -204,9 +204,6 @@ contract registration {
 	for(i = 0; i < groupCount.length; i++){
     	    hangoutAddressRegistry[i]= sha3(hangoutGroups[i]);
         }
-        
-        generateGroupsFinished = true;    
-
     }
 
     function getHangoutAddress() returns(bytes32){
