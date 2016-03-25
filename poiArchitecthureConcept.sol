@@ -214,7 +214,8 @@ contract registration {
     }
 
 
-    function bootUpHangouts() internal {
+    function bootUpHangouts() {
+    	if(block.number < hangoutCountdown) throw;
         for (uint i = 0; i < groupCount; i++)
             address b = new hangout(hangoutGroups[groupCount]);
             hangoutInSession[b] = true;
