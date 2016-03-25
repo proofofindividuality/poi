@@ -137,6 +137,8 @@ contract registration {
     address[][] hangoutGroups;
     mapping(uint => bytes32) public hangoutAddressRegistry;
     bytes32[] hangoutAddress;
+    mapping (address => bool) hangoutInSession;
+
 
     mapping(address => bool) public registered;
     address[] registeredUsers;
@@ -230,7 +232,6 @@ contract registration {
         return b;
     }
 
-    mapping (address => bool) hangoutInSession;
 
     function bootUpHangouts() internal {
         for (uint i = 0; i < groupCount; i++)
