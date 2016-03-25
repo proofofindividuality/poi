@@ -124,14 +124,16 @@ contract registration {
     uint hangoutCountdown;
     
     uint groupSize;
-
+   
+    /* these are used for the registration, randomization process and to assing users into groups */
     mapping(address => bool) public registered;
     address[] registeredUsers;
     uint256[] randomizedTemplate;
 
     mapping(address => uint) public userGroup;
     uint groupCount;
-
+    
+    /* these are used for booting up the hangout sessions */
     address[][] hangoutGroups;
     mapping(uint => bytes32) public hangoutAddressRegistry;
     mapping (address => bool) hangoutInSession;
