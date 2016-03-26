@@ -1,7 +1,8 @@
 #Proof of Individuality
-*Join Slack on http://poiproject.herokuapp.com*
 
 POIs (proof-of-individuality) are smart-assets that are hosted on the Ethereum network. They solve [one of the hard problems in crypto](https://www.reddit.com/r/CryptoUBI/comments/2v2gi6/proof_of_identityproof_of_person_the_elephant_in/) - how do you prove that a person only has one account within the system?
+
+Join Slack on http://poiproject.herokuapp.com 
 
 ##How
 
