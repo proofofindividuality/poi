@@ -37,4 +37,5 @@ Main contract. Boots up the other contracts, manages scheduling, and integrates 
 ### FAQ
 
 **Could you expand a bit on how the anti-spam mechanism works?**
+
 The randomization makes it hard to gain control of entire groups, but controlling 2x or more the total number of users is a way to bypass that. Anti-spam deposits make it very expensive to perform this attack.
