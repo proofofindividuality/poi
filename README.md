@@ -11,24 +11,30 @@ Through person-to-person verification. Users are grouped together by random in g
 
 **depositGovernance.sol**
 
-manages the anti-spam deposits, and also includes a system to vote on the size of the anti-spam deposit. 
-a new contract is created each round, and the old one sucidides.
+Manages the anti-spam deposits, and also includes a system to vote on the size of the anti-spam deposit. 
+A new contract is created each round, and the old one sucidides.
 
 **generatePOIs.sol** 
 
-issues undivisible POI tokens to all verified users. a new contract is created after each round, and the old one suicides.
+Issues undivisible POI tokens to all verified users. A new contract is created after each round, and the old one suicides.
  
 **hangout.sol**
 
-manages the verification within the hangouts. includes the ASF system that 'gamifies the hangouts' by using a point system
+Manages the verification within the hangouts. Includes the ASF system that 'gamifies the hangouts' by using a point system
 instead of one-vote-per-person, allowing users in a hangout to direct and steer each others attention more. 
-a new contract is created for each hangout.
+A new contract is created for each hangout.
 
 **registration.sol**
 
-manages the registration of users each month, assing them into groups by random, and boots up hangout contracts. 
-new contract is created each round.
+Manages the registration of users each month, assing them into groups by random, and boots up hangout contracts. 
+New contract is created each round.
 
 **poi.sol** 
 
-main contract. boots up the other contracts, manages scheduling, and integrates some function call
+Main contract. Boots up the other contracts, manages scheduling, and integrates some function call
+
+
+### FAQ
+
+**Could you expand a bit on how the anti-spam mechanism works?**
+The randomization makes it hard to gain control of entire groups, but controlling 2x or more the total number of users is a way to bypass that. Anti-spam deposits make it very expensive to perform this attack.
