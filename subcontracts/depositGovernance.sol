@@ -1,4 +1,3 @@
-
 /* manage all deposits in one contract. allow users to vote using the ether from their registration deposit, if they want. 
    return all deposits after the round has finished. */
 
@@ -63,15 +62,18 @@ function NewProposal(uint256 depositSize){
 
 }
 
-function voteOnProposal(uint proposalIndex, bool opinion){
-        if(msg.value < proposals[proposalIndex].depositSize * 1 ether) throw;
+function voteOnProposal(uint proposalIndex, bool opinion, uint amount){
+        if((msg.value * 1 ether + (deposits[msg.sender] - votes[msg.sender])) < proposals[proposalIndex].depositSize) throw;
+        if(amount != 0 && msg.value * 1 ether + (deposits[msg.sender] - votes[msg.sender]) < amount) amount = msg.value * 1 ether + (deposits[msg.sender] - votes[msg.sender]); // if less than amount, use maximum amount
+        if(amount == 0) amount = msg.value * 1 ether;
         
         if(opinion == true)
-        proposals[proposalIndex].votesInFavour += msg.value * 1 ether;
+        proposals[proposalIndex].votesInFavour += amount;
         else
-        proposals[proposalIndex].votesAgainst += msg.value * 1 ether;
+        proposals[proposalIndex].votesAgainst += amount;
 
        deposits[msg.sender] += msg.value / 1 ether;
+       votes[msg.sender] += amount;
        if(addressIndex[msg.sender] == 0)
             depositRegistry.push(msg.sender);
             addressIndex[msg.sender] = depositRegistry.length;
