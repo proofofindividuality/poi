@@ -34,14 +34,16 @@ contract registration {
 
 
 
-    function registration(uint depositSize, uint registrationPeriod, uint hangoutCountdown, uint groupSize){
+    function registration(uint roundLength, uint depositSize, uint groupSize){
         groupSize = groupSize;
         genesisBlock = block.number;
-        deadLine = genesisBlock + registrationPeriod;
-        hangoutCountdown = hangoutCountdown;
+        deadLine = genesisBlock + roundLength - 1 hour; // leave enough time for the randomization algorithm to add users to groups
+        hangoutCountdown = genesisBlock + roundLength - 20 minutes; // allow hangouts to begin 20 minutes before the next round
+        
         depositSize = depositSize;
         owner = msg.sender;
     }
+    
     
     function register() returns (bool){
         if(block.number > deadLine) throw;
