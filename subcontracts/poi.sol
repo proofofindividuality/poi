@@ -8,8 +8,6 @@ contract poi {
     
     uint genesisblock;
     uint roundLength;
-    uint registrationPeriod;
-    uint hangoutCountdown;
     uint nextRound;
     
     uint depositSize;
@@ -17,16 +15,14 @@ contract poi {
     
     function poi (){
         genesisblock = block.number;
-        roundLength = 172800; // set POI pseudonym parties to happen once a month
-        nextRound = genesisblock;
-        
+        roundLength = 28 days;
         depositSize = 10;
-        registrationPeriod = roundLength * 29/30; // 29 days
-		hangoutCountdown = registrationPeriod * 23/24; // 23 hours
-		groupSize = 5;
+	groupSize = 5;
 	
+        nextRound = genesisblock;
         scheduleRound();
     }
+
     
     
     function scheduleRound() {
