@@ -48,8 +48,6 @@ contract poi {
     
     uint genesisblock;
     uint roundLength;
-    uint registrationPeriod;
-    uint hangoutCountdown;
     uint nextRound;
     
     uint depositSize;
@@ -57,14 +55,11 @@ contract poi {
     
     function poi (){
         genesisblock = block.number;
-        roundLength = 172800; // set POI pseudonym parties to happen once a month
-        nextRound = genesisblock;
-        
+        roundLength = 28 days;
         depositSize = 10;
-        registrationPeriod = roundLength * 29/30; // 29 days
-		hangoutCountdown = registrationPeriod * 23/24; // 23 hours
-		groupSize = 5;
+	groupSize = 5;
 	
+        nextRound = genesisblock;
         scheduleRound();
     }
     
@@ -72,7 +67,7 @@ contract poi {
     function scheduleRound() {
         if(block.number < nextRound) throw;
         if(currentRound != 0) registration(currentRound).endRound();
-        currentRound = new registration(depositSize, registrationPeriod, hangoutCountdown, groupSize);
+        currentRound = new registration(roundLength, depositSize, groupSize);
         
         nextRound += roundLength;
     }
@@ -151,11 +146,12 @@ contract registration {
 
 
 
-    function registration(uint depositSize, uint registrationPeriod, uint hangoutCountdown, uint groupSize){
+    function registration(uint roundLength, uint depositSize, uint groupSize){
         groupSize = groupSize;
         genesisBlock = block.number;
-        deadLine = genesisBlock + registrationPeriod;
-        hangoutCountdown = hangoutCountdown;
+        deadLine = genesisBlock + roundLength - 1 hour; // leave enough time for the randomization algorithm to add users to groups
+        hangoutCountdown = genesisBlock + roundLength - 20 minutes; // allow hangouts to begin 20 minutes before the next round
+        
         depositSize = depositSize;
         owner = msg.sender;
     }
