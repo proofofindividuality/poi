@@ -51,7 +51,9 @@ contract registration {
         if(registered[msg.sender] == true) throw;
         registeredUsers.push(msg.sender);
         registered[msg.sender] = true;
-	depositGovernance(depositContract).registrationDeposit(msg.sender).value(msg.value);
+        
+        bytes4 registrationDepositSig = bytes4(sha3("registrationDeposit(address)"));
+	depositContract.call.value(msg.value)(registrationDepositSig, msg.sender);
         return true;
     }
 
