@@ -15,7 +15,7 @@ Through person-to-person verification. Users are grouped together by random in g
 **depositGovernance.sol**
 
 Manages the anti-spam deposits, and also includes a system to vote on the size of the anti-spam deposit. 
-A new contract is created each round, and the old one sucidides.
+A new contract is created each round, and the old one suicides.
 
 **generatePOIs.sol** 
 
