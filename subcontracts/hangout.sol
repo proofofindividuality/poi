@@ -70,7 +70,7 @@ on the joint attention test.
         }
        /* pass verifiedUsers into a contract that generates POIs, together with verifiedUsers from all other hangouts */
 
-        registration(owner).passVerifiedUsers(verifiedUsers);
+        registration(owner).submitVerifiedUsers(verifiedUsers);
 
        /* the POI contract will then pass the full list into the contract generatePOItokens */
        
