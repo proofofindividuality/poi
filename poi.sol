@@ -169,7 +169,7 @@ contract registration {
     }
 
 
-    function getRandomNumber(uint seed) returns (uint) {
+    function getRandomNumber(uint seed) internal returns (uint) {
     	return (uint(sha3(block.blockhash(block.number-1), seed))%100);
     }
 
