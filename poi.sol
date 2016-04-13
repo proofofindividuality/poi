@@ -149,7 +149,7 @@ contract registration {
     function registration(uint roundLength, uint depositSize, uint groupSize){
         groupSize = groupSize;
         genesisBlock = block.number;
-        deadLine = genesisBlock + roundLength - 1 hour; // leave enough time for the randomization algorithm to add users to groups
+        deadLine = genesisBlock + roundLength - 1 hours; // leave enough time for the randomization algorithm to add users to groups
         hangoutCountdown = genesisBlock + roundLength - 20 minutes; // allow hangouts to begin 20 minutes before the next round
         
         depositSize = depositSize;
@@ -206,7 +206,7 @@ contract registration {
 	
 /* hangout addresses are generated and mapped to hangout groups */
 
-	for(i = 0; i < groupCount.length; i++){
+	for(i = 0; i < groupCount; i++){
     	    hangoutAddressRegistry[i]= sha3(hangoutGroups[i]);
         }
     }
