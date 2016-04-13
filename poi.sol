@@ -114,7 +114,6 @@ contract registration {
 
     address owner;
     
-    uint public genesisBlock;
     uint public deadLine;
     uint hangoutCountdown;
     
@@ -148,9 +147,8 @@ contract registration {
 
     function registration(uint roundLength, uint depositSize, uint groupSize){
         groupSize = groupSize;
-        genesisBlock = block.number;
-        deadLine = genesisBlock + roundLength - 1 hours; // leave enough time for the randomization algorithm to add users to groups
-        hangoutCountdown = genesisBlock + roundLength - 20 minutes; // allow hangouts to begin 20 minutes before the next round
+        deadLine = block.number + roundLength - 1 hours; // leave enough time for the randomization algorithm to add users to groups
+        hangoutCountdown = block.number + roundLength - 20 minutes; // allow hangouts to begin 20 minutes before the next round
         
         depositSize = depositSize;
         owner = msg.sender;
