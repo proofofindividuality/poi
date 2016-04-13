@@ -2,8 +2,10 @@ contract registration {
 
     address owner;
     
+    uint randomHour; // alternate the hour of the day that the global event occurs on
     uint public deadLine;
     uint hangoutCountdown;
+    uint issuePOIsCountdown;
     
     uint groupSize;
    
@@ -22,7 +24,6 @@ contract registration {
 
     /* when you issue POIs, you pass along a list of verified users */
     address[] verifiedUsers;
-    uint passVerifiedUsersDeadLine;
 
     /* the deposits are managed by the depositGovernance contract, so registration contract only 
        stores depositSize and the address for the depositContract */
@@ -35,9 +36,10 @@ contract registration {
 
     function registration(uint roundLength, uint depositSize, uint groupSize){
         groupSize = groupSize;
-        deadLine = block.number + roundLength - 1 hours; // leave enough time for the randomization algorithm to add users to groups
-        hangoutCountdown = block.number + roundLength - 20 minutes; // allow hangouts to begin 20 minutes before the next round
-        
+        randomHour; // todo: generate random number between 1 and 24
+        deadLine = block.number + roundLength - randomHour - 1 hours; // leave enough time for the randomization algorithm to add users to groups
+        hangoutCountdown = block.number + roundLength - randomHour; // allow hangouts to begin at the randomHour clock stroke
+        issuePOIsCountdown = block.number + roundLength - randomHour + 45 minutes; // leave 30 minutes for all verified users to be submitted
         depositSize = depositSize;
         owner = msg.sender;
     }
@@ -113,10 +115,9 @@ contract registration {
     }
     
 
-    function passVerifiedUsers(address[] verified) {
+    function submitVerifiedUsers(address[] verified) {
         if(hangoutInSession[msg.sender] != true) throw; // can only be invoked by hangout contract
-        if(passVerifiedUsersDeadLine == 0) passVerifiedUsersDeadLine = block.number + 100; // give everyone enough time to submit their verified addresses
-        if(block.number > passVerifiedUsersDeadLine) throw; // deadLine has passed and POIs have already started being issued
+        if(block.number > issuePOIsCountdown) throw; // deadLine has passed and POIs have already started being issued
         
         for (uint i = 0; i < verified.length; i++)
             verifiedUsers.push(verified[i]);
@@ -125,7 +126,7 @@ contract registration {
     }
     
     function issuePOIs(){
-        if(block.number < passVerifiedUsersDeadLine) throw; // hangouts are still in session
+        if(block.number < issuePOIsCountdown) throw; // hangouts are still in session
             poi(owner).issuePOIs(verifiedUsers);
             
     }
