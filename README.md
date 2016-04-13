@@ -35,8 +35,9 @@ New contract is created each round.
 **poi.sol** 
 
 Main contract. Boots up the other contracts, manages scheduling, and integrates some function call
-
-
+<br><br>
+<img src="http://i.imgur.com/umgmBgk.png">
+<br><br>
 ### FAQ
 
 **Could you expand a bit on how the anti-spam mechanism works?**
