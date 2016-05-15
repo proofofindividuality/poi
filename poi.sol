@@ -391,17 +391,18 @@ contract generatePOIs {
 
 contract depositGovernance {
 
-address owner;
 address registrationContract;
+address poiContract;
 
-/* manage deposits */
+struct Participant {
+      address participant;
+      uint256 antiSpamDeposit;
+      uint256 Votes;  // deposited ether that has been used to vote
+}
 
-mapping (address => uint256) deposits; // deposits that have not been used as votes
-mapping (address => uint256) votes; // deposited ether that has been used to vote
+Participant[] public participants;
 
-mapping (address => uint256) addressIndex;
-
-address[] depositRegistry;
+mapping (address => uint256) public participantID;
 
 
 struct proposeNewDeposit {
@@ -411,64 +412,78 @@ struct proposeNewDeposit {
 
 }
 
-proposeNewDeposit[] proposals;
+proposeNewDeposit[] public proposals;
 
-
-
-function depositGovernance(){
-    owner = msg.sender;
+function depositGovernance(uint currentDepositSize){
+    poiContract = msg.sender;
+    participants.length++;
+    participants[0] = Participant({participant: 0, antiSpamDeposit: 0, Votes: 0});
+    
+    proposals.push(proposeNewDeposit({
+             depositSize: currentDepositSize,
+             votesInFavour: 0,
+             votesAgainst: 0
+         }));
 }
 
 // contract registration calls registrationDeposit(msg.sender).value(msg.value)
 
-function registrationDeposit(address registrant){
-if(msg.sender != registrationContract) throw;
-deposits[registrant] += msg.value;
-if(addressIndex[registrant] == 0)
-
-depositRegistry.push(registrant);
-
+function registrationDeposit(address registrant)  {
+if(msg.sender != registrationContract) throw;   
+if(participantID[registrant] == 0) {
+      participantID[registrant] = participants.length;
+      participants.push(Participant({
+               participant: registrant,
+               antiSpamDeposit: msg.value / 1 ether,
+               Votes: 0
+           }));
+   }
+   else {
+      participants[participantID[registrant]].antiSpamDeposit += msg.value / 1 ether;
+   }
+   proposals[0].votesInFavour += msg.value / 1 ether;
+   
 }
 
 function NewProposal(uint256 depositSize){
-        if(msg.value < depositSize * 1 ether) throw;
+        uint availableEther = participants[participantID[msg.sender]].antiSpamDeposit + msg.value / 1 ether;
+        if(availableEther < depositSize) throw;
         proposals.push(proposeNewDeposit({
             depositSize: depositSize,
-            votesInFavour: 0,
+            votesInFavour: depositSize,
             votesAgainst: 0
         }));
-        
-       deposits[msg.sender] += msg.value / 1 ether;
-       if(addressIndex[msg.sender] == 0)
-            depositRegistry.push(msg.sender);
-            addressIndex[msg.sender] = depositRegistry.length;
-
-
-       /* add surplus to votesInFavour */
-       if(msg.value > depositSize * 1 ether)
-       proposals[proposals.length].votesInFavour += msg.value/1 ether - depositSize;
-
+        participants[participantID[msg.sender]].antiSpamDeposit -= availableEther - msg.value / 1 ether;
+        proposals[0].votesInFavour -= availableEther - msg.value / 1 ether;
+        participants[participantID[msg.sender]].Votes += depositSize;
 }
 
-function voteOnProposal(uint proposalIndex, bool opinion, uint amount){
-        if((msg.value * 1 ether + (deposits[msg.sender] - votes[msg.sender])) < proposals[proposalIndex].depositSize) throw;
-        if(amount != 0 && msg.value * 1 ether + (deposits[msg.sender] - votes[msg.sender]) < amount) amount = msg.value * 1 ether + (deposits[msg.sender] - votes[msg.sender]); // if less than amount, use maximum amount
-        if(amount == 0) amount = msg.value * 1 ether;
+
+
+function voteOnProposal(uint proposalIndex, bool opinion, uint amount) {
+        if(participantID[msg.sender] == 0) {
+              participantID[msg.sender] = participants.length;
+              participants.push(Participant({
+                       participant: msg.sender,
+                       antiSpamDeposit: 0,
+                       Votes: 0
+                   }));
+           
+        }   
+        uint availableEther = participants[participantID[msg.sender]].antiSpamDeposit + msg.value / 1 ether;
+        if(availableEther < amount) amount = availableEther; 
         
         if(opinion == true)
         proposals[proposalIndex].votesInFavour += amount;
         else
         proposals[proposalIndex].votesAgainst += amount;
-
-       deposits[msg.sender] += msg.value / 1 ether;
-       votes[msg.sender] += amount;
-       if(addressIndex[msg.sender] == 0)
-            depositRegistry.push(msg.sender);
-            addressIndex[msg.sender] = depositRegistry.length;
+        participants[participantID[msg.sender]].antiSpamDeposit -= amount - (msg.value / 1 ether);
+        proposals[0].votesInFavour -=  amount - (msg.value / 1 ether);
+        participants[participantID[msg.sender]].Votes += amount;
 }
 
 function processProposals() { // invoked at the end of each round
-    if(msg.sender != owner) throw;
+    if(msg.sender != poiContract) throw;
     uint iterateToHighest;
     
      for (uint i = 0; i < proposals.length; i++){
@@ -476,22 +491,21 @@ function processProposals() { // invoked at the end of each round
         iterateToHighest = i;
     }
     
-    if(proposals[iterateToHighest].votesInFavour > 0) {
         uint newDepositSize = proposals[iterateToHighest].depositSize;
     
         /* pass newDepositSize to poi contract */
+        bytes4 newDepositSizeSig = bytes4(sha3("newDepositSize(uint)"));
+        poiContract.call(newDepositSizeSig, newDepositSize);
     
-        poi(owner).newDepositSize(newDepositSize);
-    }
     
     /* then return deposits */
     
-        for (uint k = depositRegistry.length; k < 0 ; k++)
-            depositRegistry[i].send(deposits[depositRegistry[i]]);
-            
+        for (uint k = 1; k < participants.length; k++){
+            uint totalDeposit = participants[k].antiSpamDeposit + participants[k].Votes;
+            participants[k].participant.send(totalDeposit * 1 ether);
+         }
     /* then suicide contract */
-    if(depositRegistry.length == 0)
-        suicide(owner);
+    if(this.balance == 0) suicide(poiContract);
 }
 
 
