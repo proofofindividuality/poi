@@ -36,7 +36,7 @@ contract registration {
 
     function registration(uint roundLength, uint depositSize, uint groupSize){
         groupSize = groupSize;
-        randomHour; // todo: generate random number between 1 and 24
+        randomHour = uint8(sha3(this))%24 + 1; // generate random number between 1 and 24
         deadLine = block.number + roundLength - randomHour - 1 hours; // leave enough time for the randomization algorithm to add users to groups
         hangoutCountdown = block.number + roundLength - randomHour; // allow hangouts to begin at the randomHour clock stroke
         issuePOIsCountdown = block.number + roundLength - randomHour + 45 minutes; // leave 30 minutes for all verified users to be submitted
