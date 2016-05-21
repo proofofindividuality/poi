@@ -344,10 +344,14 @@ contract hangout {
 }      
    
   
+/* 
+  POIs are indexed and searchable, allowing a user to link together a continuous and chronological chain of POIs, if they want to.
+  To do so is completely optional, and the main use-case for POIs is to just use them for one month, and then discard the old ones.
+*/
 
 contract generatePOIs {    
     
-    address owner;
+    address poiContract;
   
     string public name;
     string public symbol;
@@ -358,7 +362,7 @@ contract generatePOIs {
     event Transfer(address indexed from, address indexed to, uint256 value);
 
     function generatePOIs(address[] verifiedUsers) {
-        owner = msg.sender;
+        poiContract = msg.sender;
         balanceOf[owner] = verifiedUsers.length;            // Give the creator all initial tokens                    
         name = "POI";                                       // Set the name for display purposes     
         symbol = "POI";                                     // Set the symbol for display purposes    
@@ -373,11 +377,11 @@ contract generatePOIs {
     }
 
 
-    function depricatePOIs() {
-     if (msg.sender == owner) suicide(owner);
+    function verifyPOI(address POIholder) external returns (bool success) {
+     if (msg.sender != poiContract) throw;
+      if(balanceOf[POIholder] == 1) return true;
     }
-       
-   
+      
    
 }
 
