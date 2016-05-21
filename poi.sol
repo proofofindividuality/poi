@@ -336,7 +336,7 @@ contract hangout {
         
        /* the anti-sybil fuel is then destroyed */
         
-        suicide(owner);
+        suicide(registrationContract);
 
    }
 
