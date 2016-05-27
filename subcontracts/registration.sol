@@ -1,6 +1,7 @@
 contract registration {
 
-    address owner;
+    address scheduler;
+    address poiContract;
     
     uint randomHour; // alternate the hour of the day that the global event occurs on
     uint public deadLine;
@@ -10,9 +11,9 @@ contract registration {
     uint groupSize;
    
     /* these are used for the registration, randomization process and to assing users into groups */
-    mapping(address => bool) public registered;
     address[] registeredUsers;
     uint256[] randomizedTemplate;
+    mapping(address => bool) public registered;
 
     mapping(address => uint) public userGroup;
     uint groupCount;
@@ -24,36 +25,52 @@ contract registration {
 
     /* when you issue POIs, you pass along a list of verified users */
     address[] verifiedUsers;
-
-    /* the deposits are managed by the depositGovernance contract, so registration contract only 
-       stores depositSize and the address for the depositContract */
     
     uint depositSize;
     address depositContract;
 
 
-
-
-    function registration(uint roundLength, uint depositSize, uint groupSize){
+    function registration(uint roundLength, uint groupSize, uint depositSize){
         groupSize = groupSize;
+        depositSize = depositSize;
         randomHour = uint8(sha3(this))%24 + 1; // generate random number between 1 and 24
         deadLine = block.number + roundLength - randomHour - 1 hours; // leave enough time for the randomization algorithm to add users to groups
         hangoutCountdown = block.number + roundLength - randomHour; // allow hangouts to begin at the randomHour clock stroke
         issuePOIsCountdown = block.number + roundLength - randomHour + 45 minutes; // leave 30 minutes for all verified users to be submitted
-        depositSize = depositSize;
-        owner = msg.sender;
+        poiContract = msg.sender;
+	scheduler = 0x26416b12610d26fd31d227456e9009270574038f; // alarm service on morden testnet
+        scheduleShuffling();
+        scheduleHangouts();
+        scheduleIssuePOIs();
     }
     
-    function register() returns (bool){
+    
+    function register() returns (bool success) {
         if(block.number > deadLine) throw;
-        if(msg.value < depositSize * 1 ether) throw;
+        if(msg.value < depositSize) throw;
         if(registered[msg.sender] == true) throw;
-        registeredUsers.push(msg.sender);
         registered[msg.sender] = true;
-        
-        bytes4 registrationDepositSig = bytes4(sha3("registrationDeposit(address)"));
-	depositContract.call.value(msg.value)(registrationDepositSig, msg.sender);
-        return true;
+        registeredUsers.push(msg.sender);
+	depositGovernance(depositContract).registrationDeposit.value(msg.value)(msg.sender);
+	return true;
+    }
+
+    function scheduleShuffling() internal {
+	bytes4 sig = bytes4(sha3("generateGroups()"));
+	bytes4 scheduleCallSig = bytes4(sha3("scheduleCall(bytes4,uint256)"));
+	scheduler.call.value(50000000000000000)(scheduleCallSig, sig, deadLine);
+    }
+    
+    function scheduleHangouts() internal {
+	bytes4 sig = bytes4(sha3("bootUpHangouts()"));
+	bytes4 scheduleCallSig = bytes4(sha3("scheduleCall(bytes4,uint256)"));
+	scheduler.call.value(50000000000000000)(scheduleCallSig, sig, hangoutCountdown);
+    }
+    
+    function scheduleIssuePOIs() internal {
+	bytes4 sig = bytes4(sha3("issuePOIs()"));
+	bytes4 scheduleCallSig = bytes4(sha3("scheduleCall(bytes4,uint256)"));
+	scheduler.call.value(50000000000000000)(scheduleCallSig, sig, issuePOIsCountdown);
     }
 
 
@@ -103,7 +120,8 @@ contract registration {
         if(hangoutAddressRegistry[userGroup[msg.sender]] == 0) throw;
         // maybe use http://appear.in for first version
         // hangoutURL = "http://appear.in" + hangoutAddressRegistry[userGroup[msg.sender]]
-        return hangoutAddressRegistry[userGroup[msg.sender]];
+        bytes32 hangoutURL = hangoutAddressRegistry[userGroup[msg.sender]];
+        return hangoutURL;
     }
 
 
@@ -127,12 +145,12 @@ contract registration {
     
     function issuePOIs(){
         if(block.number < issuePOIsCountdown) throw; // hangouts are still in session
-            poi(owner).issuePOIs(verifiedUsers);
+            poi(poiContract).issuePOIs(verifiedUsers);
             
     }
     
-    function endRound(){
-        if(msg.sender != owner) throw;
-        suicide(owner);
+    function killContract(){
+        if(msg.sender != poiContract) throw;
+        suicide(poiContract);
     }
 }
