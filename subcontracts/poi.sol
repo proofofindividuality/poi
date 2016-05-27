@@ -1,71 +1,81 @@
-contract poi {
+ontract poi {
     
-    address currentPOItokens;
-    address currentRound;
-    address depositGovernanceContract;
-    address previousDepositGovernance;	    
+    address public POIs;
+    address public registrationContract;
+    address public depositContract;
+
+    address scheduler; // address to the alarm contract, see http://ethereum-alarm-clock.com
+
+    struct POI {
+    	address indexedContract;
+    	uint timeStamp;
+    }
     
+    uint year;
+    uint month;
+    
+    mapping(uint => mapping(uint => POI)) public indexAllPOIs; // years since start => month => indexedContract
     
     uint genesisblock;
-    uint roundLength;
     uint nextRound;
-    
+    uint roundLength;
+
     uint depositSize;
     uint groupSize;
-    
+
     function poi (){
         genesisblock = block.number;
-        roundLength = 28 days;
-        depositSize = 10;
+        roundLength = 2 days;
+        depositSize = 1 ether;
 	groupSize = 5;
-	
         nextRound = genesisblock;
-        scheduleRound();
+	scheduler = 0x26416b12610d26fd31d227456e9009270574038f; // alarm service on morden testnet
+	month = 0;
+	year = 0;
+	newRound();
     }
 
+    function scheduleCall() internal {
+	bytes4 sig = bytes4(sha3("newRound()"));
+	bytes4 scheduleCallSig = bytes4(sha3("scheduleCall(bytes4,uint256)"));
+	scheduler.call.value(50000000000000000)(scheduleCallSig, sig, nextRound);
+    }
     
-    
-    function scheduleRound() {
+    function newRound() {
         if(block.number < nextRound) throw;
-        if(currentRound != 0) registration(currentRound).endRound();
-        currentRound = new registration(depositSize, registrationPeriod, hangoutCountdown, groupSize);
-        
+        registrationContract = new registration(roundLength, groupSize, depositSize);
+        registrationContract.send(200000000000000000);
+        depositContract = new depositGovernance(depositSize, registrationContract);
         nextRound += roundLength;
+	scheduleCall();
     }
 
-    function issuePOIs(address[] verifiedUsers) {
-        if(msg.sender != currentRound) throw;
-        if(currentPOItokens != 0) generatePOIs(currentPOItokens).depricatePOIs;
-        currentPOItokens = new generatePOIs(verifiedUsers);
-        
-        // now that the a new POI round has begun and the deposits have been returned,
-        // launch a new depositGovernanceContract
-        // if a new depositSize has been agreed on, the old depositGovernanceContract will automatically
-        // invoke the newDepositSize() function (see below) 
-        
-        newDepositGovernanceContract();
+    function issuePOIs(address[] verifiedUsers) external {
+        if(msg.sender != registrationContract) throw;
+        POIs = new generatePOIs(verifiedUsers);
+        indexAllPOIs[year][month] = POI({indexedContract: POIs, timeStamp: now});
+        if(month == 13) year++; month = 0;
+        month++;
+	endRound();
     }
     
-    function newDepositGovernanceContract() internal{
-        if(depositGovernanceContract != 0) {
-        	depositGovernance(depositGovernanceContract).processProposals();
-        	previousDepositGovernance = depositGovernanceContract; // processProposals() will take a few minutes, so use a temporary address, previousDepositGovernance, for newDepositSize() for now
-        }
-        depositGovernanceContract = new depositGovernance();
-        /* deposits paid into voting for depositSizes should be deducatable from the deposit required to register */
-        /* that's not implemented yet. stub on https://gist.github.com/resilience-me/0afcb1d692bb815de9ed */
+    function endRound(){
+        registration(registrationContract).killContract();
+        depositGovernance(depositContract).processProposals();
     }
-
-    function newDepositSize(uint newDepositSize){
-    if(msg.sender != previousDepositGovernance) throw;
+   
+    function newDepositSize(uint newDepositSize) external {
+    if(msg.sender != depositContract) throw;
         depositSize = newDepositSize;
     }
     
-    function verifyPOI (address v) returns (string){
-	    if (generatePOIs(currentPOItokens).balanceOf(v)==0){
-		    return "account does not have a valid POI";
-	    }
-    	else return "account has a valid POI";
-    }      
+    function verifyPOI (address v) public returns (bool success){
+	    if (generatePOIs(POIs).POIs(v) == 1) return true;
+    }
+    
+    function doSignature(uint year, uint month) returns (bool success) {
+    	address searchHistory = indexAllPOIs[year][month].indexedContract;
+    	if(generatePOIs(searchHistory).doSignature()) return true;
+    }
     
 }
