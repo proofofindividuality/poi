@@ -1,118 +1,89 @@
-// proposal for overall architecture of the POI system
-// by Johan, @resilience_me
-
-// for an image of how the parts of the system fit together, see http://i.imgur.com/umgmBgk.png
-
-// this is meant as a early draft of how the full system could work. parts of the draft might be production ready.
-// this draft is meant to help spread the POI system concept, and to expand the number of people who invest attention in development
-
-
-// contract depositGovernance: more or less finished
-// generatePOIs: more or less finished
-// hangout: more or less finished 
-// registration: needs to be cleaned up 
-// poi: not finished, needs work, scheduling needs to be streamlined and integrated with ethereum-alarm-service,
-// and the other contracts need to integrate better with the main contract
-
- 
-   
-// overview of the contracts:
-//
-// depositGovernance: manages the anti-spam deposits, and also includes a system to vote on the size of the anti-spam deposit.
-// 		      a new contract is created each round, and the old one sucidides.
-//
-// generatePOIs: issues undivisible POI tokens to all verified users. a new contract is created after each round, and the old one suicides.
-// 
-// hangout: manages the verification within the hangouts. includes the ASF system that 'gamifies the hangouts' by using a point system
-// 	    instead of one-vote-per-person, allowing users in a hangout to direct and steer each others attention more. a new contract is created for each hangout.
-// 
-// registration: manages the registration of users each month, assing them into groups by random, and boots up hangout contracts. new contract is created each round.
-// 
-// poi: main contract. boots up the other contracts, manages scheduling, and integrates some function calls.
-
-
-
-// it's perhaps not optimal to boot up new contracts for everything all the time. 
-// library contracts could perhaps be useful. inexperienced with those.
-// feedback and better solutions are welcome, and will be added to what I do on my end.
-
-
-
 contract poi {
     
-    address currentPOItokens;
-    address currentRound;
-    address depositGovernanceContract;
-    address previousDepositGovernance;	    
+    address public POIs;
+    address public registrationContract;
+    address public depositContract;
+
+    address scheduler; // address to the alarm contract, see http://ethereum-alarm-clock.com
+
+    struct POI {
+    	address indexedContract;
+    	uint timeStamp;
+    }
     
+    uint year;
+    uint month;
+    
+    mapping(uint => mapping(uint => POI)) public indexAllPOIs; // years since start => month => indexedContract
     
     uint genesisblock;
-    uint roundLength;
     uint nextRound;
-    
+    uint roundLength;
+
     uint depositSize;
     uint groupSize;
-    
+
     function poi (){
         genesisblock = block.number;
-        roundLength = 28 days;
-        depositSize = 10;
+        roundLength = 2 days;
+        depositSize = 1 ether;
 	groupSize = 5;
-	
         nextRound = genesisblock;
-        scheduleRound();
+	scheduler = 0x26416b12610d26fd31d227456e9009270574038f; // alarm service on morden testnet
+	month = 0;
+	year = 0;
+	newRound();
+    }
+
+    function scheduleCall() internal {
+	bytes4 sig = bytes4(sha3("newRound()"));
+	bytes4 scheduleCallSig = bytes4(sha3("scheduleCall(bytes4,uint256)"));
+	scheduler.call.value(50000000000000000)(scheduleCallSig, sig, nextRound);
     }
     
-    
-    function scheduleRound() {
+    function newRound() {
         if(block.number < nextRound) throw;
-        if(currentRound != 0) registration(currentRound).endRound();
-        currentRound = new registration(roundLength, depositSize, groupSize);
-        
+        registrationContract = new registration(roundLength, groupSize, depositSize);
+        registrationContract.send(200000000000000000);
+        depositContract = new depositGovernance(depositSize, registrationContract);
         nextRound += roundLength;
+	scheduleCall();
     }
 
-    function issuePOIs(address[] verifiedUsers) {
-        if(msg.sender != currentRound) throw;
-        if(currentPOItokens != 0) generatePOIs(currentPOItokens).depricatePOIs;
-        currentPOItokens = new generatePOIs(verifiedUsers);
-        
-        // now that the a new POI round has begun and the deposits have been returned,
-        // launch a new depositGovernanceContract
-        // if a new depositSize has been agreed on, the old depositGovernanceContract will automatically
-        // invoke the newDepositSize() function (see below) 
-        
-        newDepositGovernanceContract();
+    function issuePOIs(address[] verifiedUsers) external {
+        if(msg.sender != registrationContract) throw;
+        POIs = new generatePOIs(verifiedUsers);
+        indexAllPOIs[year][month] = POI({indexedContract: POIs, timeStamp: now});
+        if(month == 13) year++; month = 0;
+        month++;
+	endRound();
     }
     
-    function newDepositGovernanceContract() internal{
-        if(depositGovernanceContract != 0) {
-        	depositGovernance(depositGovernanceContract).processProposals();
-        	previousDepositGovernance = depositGovernanceContract; // processProposals() will take a few minutes, so use a temporary address, previousDepositGovernance, for newDepositSize() for now
-        }
-        depositGovernanceContract = new depositGovernance();
-        /* deposits paid into voting for depositSizes should be deducatable from the deposit required to register */
-        /* that's not implemented yet. stub on https://gist.github.com/resilience-me/0afcb1d692bb815de9ed */
+    function endRound(){
+        registration(registrationContract).killContract();
+        depositGovernance(depositContract).processProposals();
     }
-
-    function newDepositSize(uint newDepositSize){
-    if(msg.sender != previousDepositGovernance) throw;
+   
+    function newDepositSize(uint newDepositSize) external {
+    if(msg.sender != depositContract) throw;
         depositSize = newDepositSize;
     }
     
-    function verifyPOI (address v) returns (string){
-	    if (generatePOIs(currentPOItokens).balanceOf(v)==0){
-		    return "account does not have a valid POI";
-	    }
-    	else return "account has a valid POI";
-    }      
+    function verifyPOI (address v) public returns (bool success){
+	    if (generatePOIs(POIs).POIs(v) == 1) return true;
+    }
+    
+    function doSignature(uint year, uint month) returns (bool success) {
+    	address searchHistory = indexAllPOIs[year][month].indexedContract;
+    	if(generatePOIs(searchHistory).doSignature()) return true;
+    }
     
 }
 
-
 contract registration {
 
-    address owner;
+    address scheduler;
+    address poiContract;
     
     uint randomHour; // alternate the hour of the day that the global event occurs on
     uint public deadLine;
@@ -122,9 +93,9 @@ contract registration {
     uint groupSize;
    
     /* these are used for the registration, randomization process and to assing users into groups */
-    mapping(address => bool) public registered;
     address[] registeredUsers;
     uint256[] randomizedTemplate;
+    mapping(address => bool) public registered;
 
     mapping(address => uint) public userGroup;
     uint groupCount;
@@ -136,36 +107,52 @@ contract registration {
 
     /* when you issue POIs, you pass along a list of verified users */
     address[] verifiedUsers;
-
-    /* the deposits are managed by the depositGovernance contract, so registration contract only 
-       stores depositSize and the address for the depositContract */
     
     uint depositSize;
     address depositContract;
 
 
-
-
-    function registration(uint roundLength, uint depositSize, uint groupSize){
+    function registration(uint roundLength, uint groupSize, uint depositSize){
         groupSize = groupSize;
+        depositSize = depositSize;
         randomHour = uint8(sha3(this))%24 + 1; // generate random number between 1 and 24
         deadLine = block.number + roundLength - randomHour - 1 hours; // leave enough time for the randomization algorithm to add users to groups
         hangoutCountdown = block.number + roundLength - randomHour; // allow hangouts to begin at the randomHour clock stroke
         issuePOIsCountdown = block.number + roundLength - randomHour + 45 minutes; // leave 30 minutes for all verified users to be submitted
-        depositSize = depositSize;
-        owner = msg.sender;
+        poiContract = msg.sender;
+	scheduler = 0x26416b12610d26fd31d227456e9009270574038f; // alarm service on morden testnet
+        scheduleShuffling();
+        scheduleHangouts();
+        scheduleIssuePOIs();
     }
     
-    function register() returns (bool){
+    
+    function register() returns (bool success) {
         if(block.number > deadLine) throw;
-        if(msg.value < depositSize * 1 ether) throw;
+        if(msg.value < depositSize) throw;
         if(registered[msg.sender] == true) throw;
-        registeredUsers.push(msg.sender);
         registered[msg.sender] = true;
-        
-        bytes4 registrationDepositSig = bytes4(sha3("registrationDeposit(address)"));
-	depositContract.call.value(msg.value)(registrationDepositSig, msg.sender);
-        return true;
+        registeredUsers.push(msg.sender);
+	depositGovernance(depositContract).registrationDeposit.value(msg.value)(msg.sender);
+	return true;
+    }
+
+    function scheduleShuffling() internal {
+	bytes4 sig = bytes4(sha3("generateGroups()"));
+	bytes4 scheduleCallSig = bytes4(sha3("scheduleCall(bytes4,uint256)"));
+	scheduler.call.value(50000000000000000)(scheduleCallSig, sig, deadLine);
+    }
+    
+    function scheduleHangouts() internal {
+	bytes4 sig = bytes4(sha3("bootUpHangouts()"));
+	bytes4 scheduleCallSig = bytes4(sha3("scheduleCall(bytes4,uint256)"));
+	scheduler.call.value(50000000000000000)(scheduleCallSig, sig, hangoutCountdown);
+    }
+    
+    function scheduleIssuePOIs() internal {
+	bytes4 sig = bytes4(sha3("issuePOIs()"));
+	bytes4 scheduleCallSig = bytes4(sha3("scheduleCall(bytes4,uint256)"));
+	scheduler.call.value(50000000000000000)(scheduleCallSig, sig, issuePOIsCountdown);
     }
 
 
@@ -215,7 +202,8 @@ contract registration {
         if(hangoutAddressRegistry[userGroup[msg.sender]] == 0) throw;
         // maybe use http://appear.in for first version
         // hangoutURL = "http://appear.in" + hangoutAddressRegistry[userGroup[msg.sender]]
-        return hangoutAddressRegistry[userGroup[msg.sender]];
+        bytes32 hangoutURL = hangoutAddressRegistry[userGroup[msg.sender]];
+        return hangoutURL;
     }
 
 
@@ -239,16 +227,15 @@ contract registration {
     
     function issuePOIs(){
         if(block.number < issuePOIsCountdown) throw; // hangouts are still in session
-            poi(owner).issuePOIs(verifiedUsers);
+            poi(poiContract).issuePOIs(verifiedUsers);
             
     }
     
-    function endRound(){
-        if(msg.sender != owner) throw;
-        suicide(owner);
+    function killContract(){
+        if(msg.sender != poiContract) throw;
+        suicide(poiContract);
     }
 }
-
 
 
 contract hangout {
@@ -327,10 +314,7 @@ contract hangout {
         }
        /* pass verifiedUsers into a contract that generates POIs, together with verifiedUsers from all other hangouts */
        
-        bytes4 submitVerifiedUsersSig = bytes4(sha3("submitVerifiedUsers(address[])"));
-        registrationContract.call(submitVerifiedUsersSig, verifiedUsers);
-        
-        // registration(registrationContract).submitVerifiedUsers(verifiedUsers);
+        registration(registrationContract).submitVerifiedUsers(verifiedUsers);
 
        /* the POI contract will then pass the full list into the contract generatePOItokens */
         
@@ -342,8 +326,7 @@ contract hangout {
 
 
 }      
-   
-  
+
 /* 
   POIs are indexed and searchable, allowing a user to link together a continuous and chronological chain of POIs, if they want to.
   To do so is completely optional, and the main use-case for POIs is to just use them for one month, and then discard the old ones.
@@ -352,40 +335,25 @@ contract hangout {
 contract generatePOIs {    
     
     address poiContract;
-  
-    string public name;
-    string public symbol;
-    uint8 public decimals;
+
+    mapping (address => uint) public POIs;
     
-    mapping (address => uint256) public balanceOf;
-
-    event Transfer(address indexed from, address indexed to, uint256 value);
-
     function generatePOIs(address[] verifiedUsers) {
-        poiContract = msg.sender;
-        balanceOf[owner] = verifiedUsers.length;            // Give the creator all initial tokens                    
-        name = "POI";                                       // Set the name for display purposes     
-        symbol = "POI";                                     // Set the symbol for display purposes    
-        decimals = 0;                                       // Amount of decimals for display purposes        
-    
-      /* Send POIs to every verified address */
-
-        for (uint i = 0; i < verifiedUsers.length; i++)
-           balanceOf[owner] -= 1;                                              
-           balanceOf[verifiedUsers[i]] += 1;
-           Transfer(owner, verifiedUsers[i], 1);            // Notify anyone listening that this transfer took place
+        for (uint i = 0; i < verifiedUsers.length; i++) {
+           POIs[verifiedUsers[i]] += 1;
+    	}
     }
-
 
     function verifyPOI(address POIholder) external returns (bool success) {
-     if (msg.sender != poiContract) throw;
-      if(balanceOf[POIholder] == 1) return true;
+        if (msg.sender != poiContract) throw;
+        if(POIs[POIholder] == 1) return true;
+    }
+    
+    function doSignature() public returns (bool success) {
+        if(POIs[msg.sender] == 1) return true;
     }
       
-   
 }
-
-
 /*  
     All deposits are managed by one contract. Upon registration, the anti-spam deposit is automatically used to vote for the current
     depositSize. This auto-vote can then be changed and used to vote for another proposal, or to create a new proposal. At the end of
@@ -478,10 +446,7 @@ function processProposals() external { // invoked at the end of each round
     
         uint newDepositSize = proposals[iterateToHighest].depositSize;
     
-        /* pass newDepositSize to poi contract */
-        bytes4 newDepositSizeSig = bytes4(sha3("newDepositSize(uint)"));
-        poiContract.call(newDepositSizeSig, newDepositSize);
-    
+    	poi(poiContract).newDepositSize(newDepositSize);
     
     /* then return deposits */
     
