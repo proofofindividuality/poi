@@ -90,10 +90,7 @@ function processProposals() external { // invoked at the end of each round
     
         uint newDepositSize = proposals[iterateToHighest].depositSize;
     
-        /* pass newDepositSize to poi contract */
-        bytes4 newDepositSizeSig = bytes4(sha3("newDepositSize(uint)"));
-        poiContract.call(newDepositSizeSig, newDepositSize);
-    
+    	poi(poiContract).newDepositSize(newDepositSize);
     
     /* then return deposits */
     
