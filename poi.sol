@@ -1,4 +1,4 @@
-contract poi {
+ontract poi {
     
     address public POIs;
     address public registrationContract;
@@ -6,16 +6,6 @@ contract poi {
 
     address scheduler; // address to the alarm contract, see http://ethereum-alarm-clock.com
 
-    struct POI {
-    	address indexedContract;
-    	uint timeStamp;
-    }
-    
-    uint year;
-    uint month;
-    
-    mapping(uint => mapping(uint => POI)) public indexAllPOIs; // years since start => month => indexedContract
-    
     uint genesisblock;
     uint nextRound;
     uint roundLength;
@@ -30,8 +20,6 @@ contract poi {
 	groupSize = 5;
         nextRound = genesisblock;
 	scheduler = 0x26416b12610d26fd31d227456e9009270574038f; // alarm service on morden testnet
-	month = 0;
-	year = 0;
 	newRound();
     }
 
@@ -53,9 +41,6 @@ contract poi {
     function issuePOIs(address[] verifiedUsers) external {
         if(msg.sender != registrationContract) throw;
         POIs = new generatePOIs(verifiedUsers);
-        indexAllPOIs[year][month] = POI({indexedContract: POIs, timeStamp: now});
-        if(month == 13) year++; month = 0;
-        month++;
 	endRound();
     }
     
@@ -73,12 +58,8 @@ contract poi {
 	    if (generatePOIs(POIs).POIs(v) == 1) return true;
     }
     
-    function doSignature(uint year, uint month) returns (bool success) {
-    	address searchHistory = indexAllPOIs[year][month].indexedContract;
-    	if(generatePOIs(searchHistory).doSignature()) return true;
-    }
-    
 }
+
 
 contract registration {
 
@@ -327,30 +308,27 @@ contract hangout {
 
 }      
 
-/* 
-  POIs are indexed and searchable, allowing a user to link together a continuous and chronological chain of POIs, if they want to.
-  To do so is completely optional, and the main use-case for POIs is to just use them for one month, and then discard the old ones.
-*/
-
 contract generatePOIs {    
     
-    address poiContract;
+    address mainContract;
 
     mapping (address => uint) public POIs;
     
     function generatePOIs(address[] verifiedUsers) {
+    	mainContract = msg.sender;
         for (uint i = 0; i < verifiedUsers.length; i++) {
            POIs[verifiedUsers[i]] += 1;
     	}
     }
 
     function verifyPOI(address POIholder) external returns (bool success) {
-        if (msg.sender != poiContract) throw;
+        if (msg.sender != mainContract) throw;
         if(POIs[POIholder] == 1) return true;
     }
     
-    function doSignature() public returns (bool success) {
-        if(POIs[msg.sender] == 1) return true;
+    function killContract(){
+        if(msg.sender != mainContract) throw;
+        suicide(mainContract);
     }
       
 }
