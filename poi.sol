@@ -1,4 +1,4 @@
-ontract poi {
+contract poi {
     
     address public POIs;
     address public registrationContract;
